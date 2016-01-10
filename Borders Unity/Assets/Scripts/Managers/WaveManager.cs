@@ -15,6 +15,8 @@ public class WaveManager : MonoBehaviour {
     }
     public waveType currentWaveType;
     public GameObject waveHolder;
+    public int numberOfWavesToSpawn;
+    private List<GameObject> pooledWaveHolders = new List<GameObject>();
     public Vector3[] spawnPositions = new Vector3[3];
     public float waveSpawnRate;
 
@@ -31,14 +33,19 @@ public class WaveManager : MonoBehaviour {
     void InitialiseData()
     {
         smScript = transform.parent.GetComponent<SpawnManager>();
+
+        PoolWaves();
     }
 
-    
-	
-	// Update is called once per frame
-	void Update () {
-	
-	}
+    void PoolWaves()
+    {
+        for(int i = 0; i < numberOfWavesToSpawn; i++)
+        {
+            GameObject _waveHolder = (GameObject)Instantiate(waveHolder);
+            _waveHolder.SetActive(false);
+            pooledWaveHolders.Add(_waveHolder);
+        }
+    }
 
     public void StartWaves()
     {
@@ -47,7 +54,8 @@ public class WaveManager : MonoBehaviour {
 
     public void SetupWave()
     {
-        GameObject _waveHolder = (GameObject)Instantiate(waveHolder);
+        GameObject _waveHolder = GetWaveHolder();
+        _waveHolder.SetActive(true);
 
         switch (currentWaveType)
         {
@@ -58,6 +66,23 @@ public class WaveManager : MonoBehaviour {
                 SpawnInBorder(_waveHolder);
                 break;
         }
+    }
+
+    GameObject GetWaveHolder()
+    {
+        GameObject _waveHolder = null;
+
+        for(int i =0; i < pooledWaveHolders.Count; i++)
+        {
+            if (!pooledWaveHolders[i].activeInHierarchy)
+            {
+                _waveHolder = pooledWaveHolders[i];
+                return _waveHolder;
+                
+            }
+        }
+
+        return _waveHolder;
     }
 
     void SpawnInBorder(GameObject _wave)
@@ -104,6 +129,7 @@ public class WaveManager : MonoBehaviour {
                     {
                         GameObject _chosenShape = smScript.pooledShapes[j];
 
+                        _chosenShape.GetComponent<SpriteRenderer>().enabled = true;
                         _chosenShape.GetComponent<SpriteRenderer>().color = ObjectColour();
 
                         _chosenShape.transform.parent = _wave.transform;

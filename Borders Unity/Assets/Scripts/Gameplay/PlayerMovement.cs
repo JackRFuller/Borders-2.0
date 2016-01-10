@@ -150,7 +150,7 @@ public class PlayerMovement : MonoBehaviour {
 
         string _newLayer = newShape.GetComponent<Collider2D>().tag;
 
-        gameObject.layer = LayerMask.NameToLayer(_newLayer);        
-        newShape.SetActive(false);
+        gameObject.layer = LayerMask.NameToLayer(_newLayer);
+        _newSprite.enabled = false;
     }
 }

@@ -4,14 +4,21 @@ using System.Collections;
 public class WaveMovement : MonoBehaviour {
 
     private Rigidbody2D rb;
+    private Vector3 startingPos;
     public float speed;
 
 	// Use this for initialization
 	void Start () {
 
         rb = GetComponent<Rigidbody2D>();
+        startingPos = transform.position;
 	
 	}
+
+    void Update()
+    {
+        CheckPosition();
+    }
 	
 	// Update is called once per frame
 	void FixedUpdate () {
@@ -21,4 +28,28 @@ public class WaveMovement : MonoBehaviour {
                                   transform.position.z);
 	
 	}
+
+    void CheckPosition()
+    {
+        Vector3 _pos = Camera.main.WorldToViewportPoint(transform.position);
+
+        if(_pos.y < 0)
+        {
+            foreach(Transform _object in transform)
+            {
+               
+                _object.transform.parent = null;
+                _object.gameObject.SetActive(false);
+            }
+
+            StartCoroutine(TurnOffShape());
+        }
+    }
+
+    IEnumerator TurnOffShape()
+    {
+        yield return new WaitForSeconds(0.1F);
+        transform.position = startingPos;
+        gameObject.SetActive(false);           
+    }
 }
