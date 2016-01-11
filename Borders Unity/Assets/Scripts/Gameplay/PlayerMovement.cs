@@ -3,6 +3,8 @@ using System.Collections;
 
 public class PlayerMovement : MonoBehaviour {
 
+    private LevelManager lmScript;
+
     private Rigidbody2D rb;
     private SpriteRenderer sprite;
 
@@ -29,6 +31,9 @@ public class PlayerMovement : MonoBehaviour {
 
     void InitialValues()
     {
+        GameObject levelMan = GameObject.Find("LevelManager");
+        lmScript = levelMan.GetComponent<LevelManager>();
+
         rb = GetComponent<Rigidbody2D>();
         transform.position = movementPoints[currentMovementPoint];
 
@@ -137,7 +142,7 @@ public class PlayerMovement : MonoBehaviour {
         }
         else
         {
-            Debug.Log("Dead");
+            lmScript.LoseLives();
         }
     }
 
