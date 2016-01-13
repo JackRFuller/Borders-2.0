@@ -21,6 +21,9 @@ public class PlayerMovement : MonoBehaviour {
 
     private Color currentColor;
 
+    private Vector3 savedVelocity;
+    private bool isPaused;
+
 
 	// Use this for initialization
 	void Start () {
@@ -58,27 +61,28 @@ public class PlayerMovement : MonoBehaviour {
 
     public void DetermineDirection(string _movingDirection)
     {
-        if (!isMoving)
+        if (!isPaused)
         {
-            switch (_movingDirection)
+            if (!isMoving)
             {
-                case ("Right"):
-                    if(currentMovementPoint < movementPoints.Length -1)
-                    {
-                        currentMovementPoint++;
-                        SetMovementPoint();
-                    }
-                    break;
-                case ("Left"):
-                    if(currentMovementPoint > 0)
-                    {
-                        currentMovementPoint--;
-                        SetMovementPoint();
-                    }
-                    break;
+                switch (_movingDirection)
+                {
+                    case ("Right"):
+                        if (currentMovementPoint < movementPoints.Length - 1)
+                        {
+                            currentMovementPoint++;
+                            SetMovementPoint();
+                        }
+                        break;
+                    case ("Left"):
+                        if (currentMovementPoint > 0)
+                        {
+                            currentMovementPoint--;
+                            SetMovementPoint();
+                        }
+                        break;
+                }
             }
-
-           
         }
     }
 
@@ -116,34 +120,76 @@ public class PlayerMovement : MonoBehaviour {
 
         if(_layerName == "Shape")
         {
-            ChangeShape(other.gameObject);            
+            ChangeShape(other.gameObject);
+            Color _shapeColor = other.gameObject.GetComponent<SpriteRenderer>().color;
         }
         else
         {
-            CheckAgainstBorder(other.gameObject);
+            if(other.tag != "Health" && other.tag != "Point")
+            {
+                CheckAgainstBorder(other.gameObject);
+            }
+            
         }
 
-        
+        if(other.tag == "Health")
+        {
+            lmScript.AddLives();
+            bool _destroyingPickUp = false;
+            TurnOffPickUp(other.gameObject, _destroyingPickUp);
+        }
 
-        Color _shapeColor = other.gameObject.GetComponent<SpriteRenderer>().color;
-
-
-
-        
+        if (other.tag == "Point")
+        {
+            Debug.Log("Hit");
+            lmScript.AddPoints();
+            bool _destroyingPickUp = false;
+            TurnOffPickUp(other.gameObject, _destroyingPickUp);
+        }
     }
 
     void CheckAgainstBorder(GameObject borderHit)
     {
         Color _shapeColor = borderHit.GetComponent<SpriteRenderer>().color;
-
-        if ((borderHit.gameObject.layer == gameObject.layer) || (_shapeColor == currentColor))
-        {
-            Debug.Log("Alive");
-        }
-        else
-        {
+       
+        if ((borderHit.layer != gameObject.layer) && (_shapeColor != currentColor))
+        {           
+            foreach(Transform child in borderHit.transform)
+            {
+                if (child.GetComponent<CircleCollider2D>().enabled)
+                {
+                    bool _destroyingPickUp = true;
+                    TurnOffPickUp(child.gameObject, _destroyingPickUp);
+                }
+            }
+           
             lmScript.LoseLives();
         }
+    }
+
+    void TurnOffPickUp(GameObject _pickUp, bool _destroyingPickUp)
+    {
+        _pickUp.GetComponent<CircleCollider2D>().enabled = false;
+        GameObject _sprite = _pickUp.transform.GetChild(0).gameObject;
+
+        _sprite.GetComponent<SpriteRenderer>().enabled = false;
+        _sprite.GetComponent<Animation>().enabled = false;
+        _sprite.GetComponent<Animation>().Play();
+
+        if (!_destroyingPickUp)
+        {
+            StartCoroutine(TurnOnParticleEffects(_sprite.GetComponent<ParticleSystem>()));
+        }
+       
+    }
+
+    IEnumerator TurnOnParticleEffects(ParticleSystem _pickUpParticles)
+    {
+        _pickUpParticles.enableEmission = true;
+        _pickUpParticles.Play();
+        yield return new WaitForSeconds(1F);
+        _pickUpParticles.enableEmission = false;
+        _pickUpParticles.Stop();
     }
 
     void ChangeShape(GameObject newShape)
@@ -157,5 +203,21 @@ public class PlayerMovement : MonoBehaviour {
 
         gameObject.layer = LayerMask.NameToLayer(_newLayer);
         _newSprite.enabled = false;
+    }
+
+    public void PauseGame()
+    {
+        savedVelocity = rb.velocity;
+        rb.isKinematic = true;
+        rb.velocity = Vector3.zero;
+        isPaused = true;
+    }
+
+    public void UnPauseGame()
+    {
+        rb.isKinematic = false;
+        rb.velocity = savedVelocity;
+        isPaused = false;
+        
     }
 }

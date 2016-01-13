@@ -7,6 +7,9 @@ public class WaveMovement : MonoBehaviour {
     private Vector3 startingPos;
     public float speed;
 
+    private Vector3 savedVelocity;
+    private bool isMoving = true;
+
 	// Use this for initialization
 	void Start () {
 
@@ -23,9 +26,14 @@ public class WaveMovement : MonoBehaviour {
 	// Update is called once per frame
 	void FixedUpdate () {
 
-        rb.velocity = new Vector3(transform.position.x,
-                                  -speed * Time.deltaTime,
-                                  transform.position.z);
+        if (isMoving)
+        {
+            rb.velocity = new Vector3(transform.position.x,
+                                 -speed * Time.deltaTime,
+                                 transform.position.z);
+        }
+
+       
 	
 	}
 
@@ -51,5 +59,22 @@ public class WaveMovement : MonoBehaviour {
         yield return new WaitForSeconds(0.1F);
         transform.position = startingPos;
         gameObject.SetActive(false);           
+    }
+
+    public void PauseGame()
+    {
+        savedVelocity = rb.velocity;
+        rb.velocity = Vector3.zero;
+        rb.isKinematic = true;
+        isMoving = false;
+    }
+
+    public void UnPauseGame()
+    {
+        rb.isKinematic = false;
+        rb.velocity = savedVelocity;
+        isMoving = true;
+
+
     }
 }

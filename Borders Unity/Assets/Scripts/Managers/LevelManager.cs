@@ -3,13 +3,26 @@ using System.Collections;
 
 public class LevelManager : MonoBehaviour {
 
+    public enum gameState
+    {
+        Paused,
+        InProgress,
+        GameOver,
+    }
+    public gameState currentGameState;
+
     [Header("Managers")]
     public UIManager uiScript;
-    public ScreenShake cameraShake;
+    public PauseManager pmScript;
+    public ScreenShake cameraShake;   
+     
 
     [Header("Lives")]
     public int numOfLives = 3;
     const int maxNumOfLives = 3;
+
+    [Header("Points")]
+    public int points;
 
 	// Use this for initialization
 	void Start () {
@@ -30,7 +43,9 @@ public class LevelManager : MonoBehaviour {
         uiScript.LoseLives(numOfLives);
         if(numOfLives == 0)
         {
-            Debug.Log("Game Over!");
+            StartCoroutine(uiScript.GameOver());
+            pmScript.TriggerPauseState();
+            //currentGameState = gameState.GameOver;
         }
     } 
 
@@ -39,8 +54,16 @@ public class LevelManager : MonoBehaviour {
         if(numOfLives < maxNumOfLives)
         {
             uiScript.AddLives(numOfLives);
-            numOfLives++;
-            
+            numOfLives++;            
+        }
+    }
+
+    public void AddPoints()
+    {
+        if(currentGameState == gameState.InProgress)
+        {
+            points++;
+            uiScript.PointsUpdate(points);
         }
     }
 }
